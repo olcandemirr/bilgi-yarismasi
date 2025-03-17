@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bilgi Yarışması</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div id="welcome-screen" class="screen active">
+            <h1>Bilgi Yarışması</h1>
+            <p>Kahoot tarzı bilgi yarışmasına hoş geldiniz!</p>
+            <button id="start-btn" class="btn">Başla</button>
+        </div>
+
+        <div id="team-form-screen" class="screen">
+            <h2>Takım Bilgileri</h2>
+            <form id="team-form">
+                <div class="form-group">
+                    <label for="team-name">Takım İsmi:</label>
+                    <input type="text" id="team-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="participant-count">Katılımcı Sayısı:</label>
+                    <input type="number" id="participant-count" min="1" max="10" required>
+                </div>
+                <button type="submit" class="btn">Yarışmaya Başla</button>
+            </form>
+        </div>
+
+        <div id="quiz-screen" class="screen">
+            <div class="quiz-header">
+                <h2 id="question-text">Soru metni burada görünecek</h2>
+                <div id="timer">30</div>
+            </div>
+            <div id="options-container">
+                <!-- Options will be added dynamically via JavaScript -->
+            </div>
+            <div id="quiz-footer">
+                <div id="question-counter">Soru: 1/10</div>
+                <div id="score">Puan: 0</div>
+            </div>
+        </div>
+
+        <div id="results-screen" class="screen">
+            <h2>Yarışma Sonuçları</h2>
+            <div id="final-score">Toplam Puan: 0</div>
+            <button id="restart-btn" class="btn">Yeniden Başlat</button>
+        </div>
+    </div>
+
+    <script src="js/questions.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html> 
