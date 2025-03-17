@@ -22,4 +22,17 @@ export default defineConfig({
             vue: 'vue/dist/vue.esm-bundler.js',
         },
     },
+    css: {
+        postcss: {
+            plugins: [
+                require('autoprefixer'),
+                require('tailwindcss'),
+            ],
+        },
+    },
+    server: {
+        hmr: {
+            overlay: false
+        }
+    }
 });

@@ -5,8 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\QuestionController;
 use App\Http\Controllers\API\ResultController;
 use App\Http\Controllers\API\AuthController;
-use App\Http\Controllers\API\FriendshipController;
-use App\Http\Controllers\API\GameInviteController;
+use App\Http\Controllers\API\CustomQuizController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,36 +18,23 @@ use App\Http\Controllers\API\GameInviteController;
 |
 */
 
-// Public Auth Routes
+// Auth Routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 // Protected Routes
 Route::middleware('auth:sanctum')->group(function () {
-    // User API
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
-    Route::get('/profile', [AuthController::class, 'profile']);
-    Route::put('/profile', [AuthController::class, 'updateProfile']);
-    Route::put('/status', [AuthController::class, 'updateStatus']);
+    Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/user/update', [AuthController::class, 'updateProfile']);
+    Route::get('/results/user', [ResultController::class, 'userStats']);
+    Route::get('/results/user/history', [ResultController::class, 'userGameHistory']);
     
-    // Friendship API
-    Route::get('/friends', [FriendshipController::class, 'index']);
-    Route::get('/friends/pending', [FriendshipController::class, 'pendingRequests']);
-    Route::get('/friends/search', [FriendshipController::class, 'search']);
-    Route::post('/friends', [FriendshipController::class, 'store']);
-    Route::put('/friends/{id}/accept', [FriendshipController::class, 'accept']);
-    Route::put('/friends/{id}/reject', [FriendshipController::class, 'reject']);
-    Route::delete('/friends/{id}', [FriendshipController::class, 'destroy']);
-    
-    // Game Invites API
-    Route::get('/game-invites', [GameInviteController::class, 'index']);
-    Route::post('/game-invites', [GameInviteController::class, 'store']);
-    Route::put('/game-invites/{id}/accept', [GameInviteController::class, 'accept']);
-    Route::put('/game-invites/{id}/reject', [GameInviteController::class, 'reject']);
-    Route::get('/games/{gameId}', [GameInviteController::class, 'show']);
+    // Custom Quiz Routes
+    Route::post('/custom-quiz', [CustomQuizController::class, 'store']);
+    Route::get('/custom-quiz', [CustomQuizController::class, 'index']);
+    Route::get('/custom-quiz/{id}', [CustomQuizController::class, 'show']);
+    Route::get('/custom-quiz/{id}/questions', [CustomQuizController::class, 'getQuestions']);
 });
 
 // Questions API
@@ -66,6 +52,3 @@ Route::get('/categories', [QuestionController::class, 'categories']);
 Route::get('/results', [ResultController::class, 'index']);
 Route::post('/results', [ResultController::class, 'store']);
 Route::get('/top-scores', [ResultController::class, 'topScores']);
-
-// System routes
-Route::get('/cleanup/game-invites', [GameInviteController::class, 'cleanupExpired']);

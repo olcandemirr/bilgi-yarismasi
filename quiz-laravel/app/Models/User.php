@@ -21,11 +21,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'username',
-        'avatar',
-        'bio',
-        'total_score',
-        'games_played',
     ];
 
     /**
@@ -46,51 +41,9 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
-
+    
     /**
-     * Kullanıcının gönderdiği arkadaşlık istekleri
-     */
-    public function sentFriendRequests()
-    {
-        return $this->hasMany(Friendship::class, 'user_id');
-    }
-
-    /**
-     * Kullanıcının aldığı arkadaşlık istekleri
-     */
-    public function receivedFriendRequests()
-    {
-        return $this->hasMany(Friendship::class, 'friend_id');
-    }
-
-    /**
-     * Kullanıcının kabul edilmiş arkadaşları
-     */
-    public function friends()
-    {
-        return $this->sentFriendRequests()
-                    ->where('status', 'accepted')
-                    ->with('friend');
-    }
-
-    /**
-     * Kullanıcının gönderdiği oyun davetleri
-     */
-    public function sentGameInvites()
-    {
-        return $this->hasMany(GameInvite::class, 'sender_id');
-    }
-
-    /**
-     * Kullanıcının aldığı oyun davetleri
-     */
-    public function receivedGameInvites()
-    {
-        return $this->hasMany(GameInvite::class, 'receiver_id');
-    }
-
-    /**
-     * Kullanıcının oyun sonuçları
+     * Get the results for the user
      */
     public function results()
     {
