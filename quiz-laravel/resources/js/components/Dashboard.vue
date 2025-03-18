@@ -34,6 +34,34 @@
                     </div>
                 </div>
                 
+                <!-- Özel Yarışmalar Bölümü -->
+                <div class="custom-quizzes-section" v-if="customQuizzes.length > 0">
+                    <h2>Özel Yarışmalarım</h2>
+                    <div class="custom-quizzes-list">
+                        <div v-for="quiz in customQuizzes" :key="quiz.id" class="custom-quiz-item">
+                            <div class="quiz-info">
+                                <h3>{{ quiz.name }}</h3>
+                                <p v-if="quiz.description">{{ quiz.description }}</p>
+                                <div class="quiz-meta">
+                                    <span class="quiz-date">{{ formatDate(quiz.created_at) }}</span>
+                                    <span class="quiz-questions">{{ quiz.question_count }} soru</span>
+                                </div>
+                            </div>
+                            <div class="quiz-actions">
+                                <button class="action-btn play-btn" @click="startCustomQuiz(quiz.id)">
+                                    <i class="fas fa-play"></i> Oyna
+                                </button>
+                                <button class="action-btn download-btn" @click="downloadQuizPDF(quiz.id)">
+                                    <i class="fas fa-file-pdf"></i> PDF
+                                </button>
+                                <button class="action-btn download-btn" @click="downloadQuizPresentation(quiz.id)">
+                                    <i class="fas fa-file-powerpoint"></i> Sunum
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Kendi Yarışmanı Oluştur Modal -->
                 <div v-if="showCreateQuizModal" class="modal-overlay" @click.self="showCreateQuizModal = false">
                     <div class="modal-content">
@@ -114,11 +142,99 @@
                                                 type="file" 
                                                 ref="fileInput" 
                                                 @change="handleFileUpload" 
-                                                accept=".json,.csv,.xlsx"
+                                                accept=".json,.csv,.jpg,.jpeg,.pptx,.ppt"
                                                 style="display: none"
                                             >
                                         </div>
-                                        <p class="file-info">Desteklenen formatlar: JSON, CSV, Excel</p>
+                                        <p class="file-info">Desteklenen formatlar: JSON, CSV, JPG, PPTX</p>
+                                        
+                                        <div class="template-info" v-if="customQuiz.templateFile && isImageOrPresentation">
+                                            <div class="alert alert-info">
+                                                <i class="fas fa-info-circle"></i>
+                                                <p>Resim veya sunum dosyası yüklediniz. Bu dosyalar için sorularınızı manuel olarak eklemeniz gerekecek.</p>
+                                            </div>
+                                            
+                                            <div class="custom-questions-section">
+                                                <h4>Sorularınızı Ekleyin</h4>
+                                                <p>Yarışmanız için {{ customQuiz.questionCount }} soru eklemeniz gerekiyor.</p>
+                                                
+                                                <div class="custom-questions-list">
+                                                    <div 
+                                                        v-for="(question, index) in customQuiz.customQuestions" 
+                                                        :key="index"
+                                                        class="custom-question-item"
+                                                    >
+                                                        <div class="question-header">
+                                                            <h5>Soru {{ index + 1 }}</h5>
+                                                            <button class="remove-question" @click="removeQuestion(index)" type="button">
+                                                                <i class="fas fa-times"></i>
+                                                            </button>
+                                                        </div>
+                                                        
+                                                        <div class="form-group">
+                                                            <label :for="'question-text-' + index">Soru Metni:</label>
+                                                            <input 
+                                                                type="text" 
+                                                                :id="'question-text-' + index" 
+                                                                v-model="question.question" 
+                                                                placeholder="Soru metnini girin"
+                                                            >
+                                                        </div>
+                                                        
+                                                        <div class="options-group">
+                                                            <div 
+                                                                v-for="(option, optIndex) in question.options" 
+                                                                :key="optIndex"
+                                                                class="form-group option-item"
+                                                            >
+                                                                <label :for="'option-' + index + '-' + optIndex">
+                                                                    Şık {{ ['A', 'B', 'C', 'D'][optIndex] }}:
+                                                                </label>
+                                                                <div class="option-input">
+                                                                    <input 
+                                                                        type="text" 
+                                                                        :id="'option-' + index + '-' + optIndex" 
+                                                                        v-model="question.options[optIndex]" 
+                                                                        placeholder="Şık metnini girin"
+                                                                    >
+                                                                    <div class="correct-option">
+                                                                        <input 
+                                                                            type="radio" 
+                                                                            :id="'correct-' + index + '-' + optIndex" 
+                                                                            :name="'correct-' + index" 
+                                                                            :value="optIndex" 
+                                                                            v-model="question.correct_answer"
+                                                                        >
+                                                                        <label :for="'correct-' + index + '-' + optIndex">Doğru</label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <button 
+                                                        v-if="customQuiz.customQuestions.length < customQuiz.questionCount" 
+                                                        class="btn add-question-btn" 
+                                                        @click="addQuestion"
+                                                        type="button"
+                                                    >
+                                                        <i class="fas fa-plus"></i> Soru Ekle
+                                                    </button>
+                                                    
+                                                    <div class="questions-progress">
+                                                        <div class="progress-bar">
+                                                            <div 
+                                                                class="progress-fill" 
+                                                                :style="{ width: (customQuiz.customQuestions.length / customQuiz.questionCount * 100) + '%' }"
+                                                            ></div>
+                                                        </div>
+                                                        <div class="progress-text">
+                                                            {{ customQuiz.customQuestions.length }} / {{ customQuiz.questionCount }} soru eklendi
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     
                                     <div class="form-actions">
@@ -307,7 +423,7 @@ export default {
             recentGames: [],
             loading: true,
             activeTab: 'all',
-            // Kendi Yarışmanı Oluştur için yeni değişkenler
+            // Kendi Yarışmanı Oluştur için değişkenler
             showCreateQuizModal: false,
             createQuizStep: 1,
             isCreatingQuiz: false,
@@ -318,8 +434,12 @@ export default {
                 selectedCategories: [],
                 useCustomTemplate: false,
                 templateFile: null,
-                outputType: 'web'
-            }
+                outputType: 'web',
+                customQuestions: []
+            },
+            // Özel yarışmalar listesi
+            customQuizzes: [],
+            loadingCustomQuizzes: false
         }
     },
     computed: {
@@ -337,13 +457,32 @@ export default {
         },
         isStep3Valid() {
             if (!this.customQuiz.useCustomTemplate) return true;
-            return this.customQuiz.templateFile !== null;
+            
+            // Şablon dosyası kontrolü
+            if (this.customQuiz.templateFile === null) return false;
+            
+            // Eğer resim veya sunum dosyası ise, soruların eklenmiş olması gerekir
+            if (this.isImageOrPresentation) {
+                return this.customQuiz.customQuestions.length === this.customQuiz.questionCount;
+            }
+            
+            return true;
+        },
+        isImageOrPresentation() {
+            if (!this.customQuiz.templateFile) return false;
+            
+            const fileName = this.customQuiz.templateFile.name.toLowerCase();
+            return fileName.endsWith('.jpg') || 
+                   fileName.endsWith('.jpeg') || 
+                   fileName.endsWith('.ppt') || 
+                   fileName.endsWith('.pptx');
         }
     },
     mounted() {
         this.fetchUserData();
         this.fetchCategories();
         this.fetchTopScores();
+        this.fetchCustomQuizzes(); // Özel yarışmaları getir
     },
     methods: {
         async fetchUserData() {
@@ -568,16 +707,41 @@ export default {
             const file = event.target.files[0];
             if (file) {
                 // Dosya türü kontrolü
-                const validTypes = ['.json', '.csv', '.xlsx', 'application/json', 'text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+                const validTypes = ['.json', '.csv', '.jpg', '.jpeg', '.pptx', '.ppt', 
+                                   'application/json', 'text/csv', 'image/jpeg', 'image/jpg',
+                                   'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
                 const fileType = file.type || file.name.substring(file.name.lastIndexOf('.'));
                 
                 if (validTypes.some(type => fileType.includes(type))) {
                     this.customQuiz.templateFile = file;
+                    
+                    // Eğer resim veya sunum dosyası ise, boş sorular oluştur
+                    if (this.isImageOrPresentation) {
+                        this.customQuiz.customQuestions = [];
+                        this.addQuestion(); // İlk soruyu otomatik ekle
+                    }
                 } else {
-                    alert('Lütfen geçerli bir dosya formatı yükleyin (JSON, CSV veya Excel).');
+                    alert('Lütfen geçerli bir dosya formatı yükleyin (JSON, CSV, JPG veya PPTX).');
                     event.target.value = null;
                 }
             }
+        },
+        
+        // Soru ekleme ve çıkarma metodları
+        addQuestion() {
+            if (this.customQuiz.customQuestions.length < this.customQuiz.questionCount) {
+                this.customQuiz.customQuestions.push({
+                    question: '',
+                    options: ['', '', '', ''],
+                    correct_answer: 0,
+                    difficulty: 'medium',
+                    time: 30
+                });
+            }
+        },
+        
+        removeQuestion(index) {
+            this.customQuiz.customQuestions.splice(index, 1);
         },
         
         async createCustomQuiz() {
@@ -594,6 +758,11 @@ export default {
                 
                 if (this.customQuiz.useCustomTemplate && this.customQuiz.templateFile) {
                     formData.append('template_file', this.customQuiz.templateFile);
+                    
+                    // Eğer özel sorular varsa, bunları da ekle
+                    if (this.isImageOrPresentation && this.customQuiz.customQuestions.length > 0) {
+                        formData.append('custom_questions', JSON.stringify(this.customQuiz.customQuestions));
+                    }
                 }
                 
                 // Token kontrolü
@@ -626,7 +795,7 @@ export default {
                     // Web uygulaması olarak başlat
                     localStorage.setItem('customQuizId', result.id);
                     this.$router.push('/');
-                } else {
+                } else if (result.download_url) {
                     // Dosya indirme işlemi
                     window.location.href = result.download_url;
                 }
@@ -652,8 +821,127 @@ export default {
                 selectedCategories: [],
                 useCustomTemplate: false,
                 templateFile: null,
-                outputType: 'web'
+                outputType: 'web',
+                customQuestions: []
             };
+        },
+        
+        // Özel yarışmaları getir
+        async fetchCustomQuizzes() {
+            try {
+                this.loadingCustomQuizzes = true;
+                const token = localStorage.getItem('token');
+                
+                if (!token) {
+                    return;
+                }
+                
+                const response = await fetch('/api/custom-quiz', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Özel yarışmalar alınamadı');
+                }
+                
+                this.customQuizzes = await response.json();
+            } catch (error) {
+                console.error('Custom quizzes error:', error);
+                this.customQuizzes = [];
+            } finally {
+                this.loadingCustomQuizzes = false;
+            }
+        },
+        
+        // Özel yarışmayı başlat
+        startCustomQuiz(quizId) {
+            localStorage.setItem('customQuizId', quizId);
+            this.$router.push('/');
+        },
+        
+        // Özel yarışmayı PDF olarak indir
+        async downloadQuizPDF(quizId) {
+            try {
+                const token = localStorage.getItem('token');
+                
+                if (!token) {
+                    alert('Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.');
+                    this.$router.push('/login');
+                    return;
+                }
+                
+                // PDF oluşturma isteği gönder
+                const response = await fetch(`/api/custom-quiz/${quizId}/pdf`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('PDF oluşturulurken bir hata oluştu');
+                }
+                
+                const result = await response.json();
+                
+                // PDF'i indir
+                if (result.download_url) {
+                    window.location.href = result.download_url;
+                } else {
+                    throw new Error('İndirme bağlantısı bulunamadı');
+                }
+                
+            } catch (error) {
+                console.error('PDF download error:', error);
+                alert('PDF indirme işlemi sırasında bir hata oluştu: ' + error.message);
+            }
+        },
+        
+        // Özel yarışmayı Sunum olarak indir
+        async downloadQuizPresentation(quizId) {
+            try {
+                const token = localStorage.getItem('token');
+                
+                if (!token) {
+                    alert('Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.');
+                    this.$router.push('/login');
+                    return;
+                }
+                
+                // Sunum oluşturma isteği gönder
+                const response = await fetch(`/api/custom-quiz/${quizId}/presentation`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Sunum oluşturulurken bir hata oluştu');
+                }
+                
+                const result = await response.json();
+                
+                // Sunumu indir
+                if (result.download_url) {
+                    window.location.href = result.download_url;
+                } else {
+                    throw new Error('İndirme bağlantısı bulunamadı');
+                }
+                
+            } catch (error) {
+                console.error('Presentation download error:', error);
+                alert('Sunum indirme işlemi sırasında bir hata oluştu: ' + error.message);
+            }
         }
     }
 }
@@ -1318,5 +1606,257 @@ h2::after {
     .output-options-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* Özel Yarışmalar Bölümü Stilleri */
+.custom-quizzes-section {
+    margin-top: 40px;
+    background-color: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.custom-quizzes-list {
+    margin-top: 20px;
+}
+
+.custom-quiz-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #eee;
+    transition: all 0.3s ease;
+}
+
+.custom-quiz-item:last-child {
+    border-bottom: none;
+}
+
+.custom-quiz-item:hover {
+    background-color: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.03);
+}
+
+.quiz-info {
+    flex: 1;
+}
+
+.quiz-info h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.3rem;
+    color: #333;
+}
+
+.quiz-info p {
+    margin: 0 0 10px 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.quiz-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.quiz-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.3s ease;
+}
+
+.play-btn {
+    background: linear-gradient(to right, #6c63ff, #8c84ff);
+    color: white;
+}
+
+.play-btn:hover {
+    background: linear-gradient(to right, #5a52e0, #7a71e0);
+    transform: translateY(-2px);
+}
+
+.download-btn {
+    background: #f0f0f0;
+    color: #555;
+}
+
+.download-btn:hover {
+    background: #e0e0e0;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .custom-quiz-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .quiz-actions {
+        margin-top: 15px;
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+/* Özel Soru Ekleme Bölümü Stilleri */
+.custom-questions-section {
+    margin-top: 30px;
+}
+
+.custom-questions-section h4 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.custom-questions-list {
+    margin-top: 20px;
+}
+
+.custom-question-item {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #eee;
+    transition: all 0.3s ease;
+}
+
+.custom-question-item:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.question-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.question-header h5 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #6c63ff;
+}
+
+.remove-question {
+    background: none;
+    border: none;
+    color: #ff4762;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+}
+
+.remove-question:hover {
+    transform: scale(1.1);
+}
+
+.options-group {
+    margin-top: 15px;
+}
+
+.option-item {
+    margin-bottom: 10px;
+}
+
+.option-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.correct-option {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 10px;
+}
+
+.add-question-btn {
+    background: linear-gradient(to right, #6c63ff, #ff4762);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 20px auto;
+    transition: all 0.3s ease;
+}
+
+.add-question-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(108, 99, 255, 0.2);
+}
+
+.questions-progress {
+    margin-top: 20px;
+}
+
+.progress-bar {
+    height: 10px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(to right, #6c63ff, #ff4762);
+    border-radius: 5px;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.alert {
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.alert-info {
+    background-color: #e6f7ff;
+    border: 1px solid #91d5ff;
+    color: #1890ff;
+}
+
+.alert i {
+    font-size: 1.2rem;
+    margin-top: 2px;
+}
+
+.alert p {
+    margin: 0;
+    font-size: 0.9rem;
 }
 </style> 

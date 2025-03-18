@@ -6,6 +6,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Models\Category;
 
 class CategorySeeder extends Seeder
 {
@@ -17,48 +18,40 @@ class CategorySeeder extends Seeder
         $categories = [
             [
                 'name' => 'Genel Kültür',
-                'slug' => 'general',
-                'description' => 'Genel bilgi soruları',
-                'created_at' => now(),
-                'updated_at' => now()
+                'description' => 'Genel kültür soruları'
             ],
             [
                 'name' => 'Bilim',
-                'slug' => 'science',
-                'description' => 'Bilim ile ilgili sorular',
-                'created_at' => now(),
-                'updated_at' => now()
+                'description' => 'Bilim ve teknoloji soruları'
             ],
             [
                 'name' => 'Tarih',
-                'slug' => 'history',
-                'description' => 'Tarih konuları ile ilgili sorular',
-                'created_at' => now(),
-                'updated_at' => now()
+                'description' => 'Tarih soruları'
             ],
             [
                 'name' => 'Coğrafya',
-                'slug' => 'geography',
-                'description' => 'Coğrafya soruları',
-                'created_at' => now(),
-                'updated_at' => now()
+                'description' => 'Coğrafya soruları'
             ],
             [
                 'name' => 'Spor',
-                'slug' => 'sports',
-                'description' => 'Spor dalları ve kuralları hakkında sorular',
-                'created_at' => now(),
-                'updated_at' => now()
+                'description' => 'Spor soruları'
             ],
             [
                 'name' => 'Sanat',
-                'slug' => 'art',
-                'description' => 'Sanat, müzik ve kültür soruları',
-                'created_at' => now(),
-                'updated_at' => now()
+                'description' => 'Sanat ve kültür soruları'
             ],
+            [
+                'name' => 'Edebiyat',
+                'description' => 'Edebiyat soruları'
+            ],
+            [
+                'name' => 'Teknoloji',
+                'description' => 'Teknoloji soruları'
+            ]
         ];
 
-        DB::table('categories')->insert($categories);
+        foreach ($categories as $category) {
+            Category::create($category);
+        }
     }
 }

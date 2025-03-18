@@ -176,15 +176,20 @@ export default {
         // LocalStorage'dan kategori ve oyun modu bilgilerini kontrol et
         const selectedCategory = localStorage.getItem('selectedCategory');
         const gameMode = localStorage.getItem('gameMode');
+        const customQuizId = localStorage.getItem('customQuizId');
         
-        if (selectedCategory) {
+        if (customQuizId) {
+            // Özel yarışma ID'si varsa, o yarışmayı başlat
+            this.loadCustomQuiz(customQuizId);
+            localStorage.removeItem('customQuizId');
+        } else if (selectedCategory) {
             // Kategori seçilmişse, o kategoriyi seç
             this.selectedCategories = [parseInt(selectedCategory)];
             localStorage.removeItem('selectedCategory');
         }
         
-        if (gameMode) {
-            // Oyun modu seçilmişse, o modu başlat
+        if (gameMode && !customQuizId) {
+            // Oyun modu seçilmişse ve özel yarışma yoksa, o modu başlat
             this.selectMode(gameMode);
             localStorage.removeItem('gameMode');
         }
@@ -490,6 +495,74 @@ export default {
             this.correctAnswers = 0;
             this.wrongAnswers = 0;
             this.responseTimeSum = 0;
+        },
+        // Özel yarışma yükleme metodu
+        async loadCustomQuiz(quizId) {
+            try {
+                // Token kontrolü
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    alert('Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.');
+                    this.$router.push('/login');
+                    return;
+                }
+                
+                // Önce yarışma bilgilerini al
+                const quizResponse = await fetch(`/api/custom-quiz/${quizId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (!quizResponse.ok) {
+                    throw new Error('Yarışma bilgileri alınamadı');
+                }
+                
+                const quiz = await quizResponse.json();
+                
+                // Yarışma sorularını al
+                const questionsResponse = await fetch(`/api/custom-quiz/${quizId}/questions`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (!questionsResponse.ok) {
+                    throw new Error('Yarışma soruları alınamadı');
+                }
+                
+                this.questions = await questionsResponse.json();
+                
+                // Yarışma ayarlarını güncelle
+                this.gameMode = 'individual';
+                this.playerName = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).name : '';
+                this.totalQuestions = quiz.question_count;
+                this.selectedCategories = quiz.categories || [];
+                
+                // Soruları filtrele ve karıştır
+                this.filteredQuestions = this.shuffleQuestions(this.questions).slice(0, this.totalQuestions);
+                
+                // Quiz durumunu sıfırla
+                this.currentQuestionIndex = 0;
+                this.score = 0;
+                this.showingResults = false;
+                this.correctAnswers = 0;
+                this.wrongAnswers = 0;
+                this.responseTimeSum = 0;
+                this.selectedOption = null;
+                
+                // Quiz ekranını göster ve zamanlayıcıyı başlat
+                this.currentScreen = 'quiz';
+                this.startTimer();
+                this.currentResponseStart = Date.now();
+                
+            } catch (error) {
+                console.error('Failed to load custom quiz:', error);
+                alert('Özel yarışma yüklenirken bir hata oluştu: ' + error.message);
+                this.currentScreen = 'welcome';
+            }
         }
     }
 };
