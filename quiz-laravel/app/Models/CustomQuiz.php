@@ -22,6 +22,7 @@ class CustomQuiz extends Model
         'categories',
         'template_file',
         'output_type',
+        'custom_questions',
     ];
 
     /**
@@ -32,6 +33,7 @@ class CustomQuiz extends Model
     protected $casts = [
         'categories' => 'array',
         'question_count' => 'integer',
+        'custom_questions' => 'array',
     ];
 
     /**

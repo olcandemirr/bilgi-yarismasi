@@ -34,6 +34,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/custom-quiz', [CustomQuizController::class, 'store']);
     Route::get('/custom-quiz', [CustomQuizController::class, 'index']);
     Route::get('/custom-quiz/{id}', [CustomQuizController::class, 'show']);
+    Route::post('/custom-quiz/{id}/pdf', [CustomQuizController::class, 'generatePDF']);
+    Route::post('/custom-quiz/{id}/presentation', [CustomQuizController::class, 'generatePresentation']);
     Route::get('/custom-quiz/{id}/questions', [CustomQuizController::class, 'getQuestions']);
 });
 
